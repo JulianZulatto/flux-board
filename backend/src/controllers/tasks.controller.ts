@@ -25,8 +25,15 @@ export async function getTasks(_req: Request, res: Response) {
         t.created_at,
         t.updated_at,
         COALESCE(
-          ARRAY_AGG(c.content ORDER BY c.created_at) FILTER (WHERE c.id IS NOT NULL),
-          ARRAY[]::text[]
+          JSON_AGG(
+            JSON_BUILD_OBJECT(
+              'id', c.id,
+              'content', c.content,
+              'created_at', c.created_at
+            )
+            ORDER BY c.created_at
+          ) FILTER (WHERE c.id IS NOT NULL),
+          '[]'::json
         ) AS comments
       FROM tasks t
       LEFT JOIN comments c ON c.task_id = t.id
@@ -111,11 +118,17 @@ export async function updateTask(req: Request, res: Response) {
     }
 
     const commentsResult = await pool.query(
-      "SELECT content FROM comments WHERE task_id = $1 ORDER BY created_at",
+      "SELECT id, content, created_at FROM comments WHERE task_id = $1 ORDER BY created_at",
       [id]
     );
 
-    const comments = commentsResult.rows.map((row: { content: string }) => row.content);
+    const comments = commentsResult.rows.map(
+      (row: { id: string; content: string; created_at: string }) => ({
+        id: row.id,
+        content: row.content,
+        created_at: row.created_at
+      })
+    );
     return res.status(200).json({ ...result.rows[0], comments });
   } catch (error) {
     console.error("Error updating task:", error);

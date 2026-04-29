@@ -1,5 +1,11 @@
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
+export type TaskComment = {
+  id: string;
+  content: string;
+  created_at: string;
+};
+
 export type Task = {
   id: string;
   title: string;
@@ -10,7 +16,7 @@ export type Task = {
   notes: string;
   created_at: string;
   updated_at: string;
-  comments: string[];
+  comments: TaskComment[];
 };
 
 export type CreateTaskInput = {
@@ -70,7 +76,7 @@ export function deleteTask(id: string) {
 }
 
 export function createComment(taskId: string, content: string) {
-  return request<{ id: string; task_id: string; content: string; created_at: string }>(
+  return request<TaskComment & { task_id: string }>(
     `/api/tasks/${taskId}/comments`,
     {
       method: "POST",

@@ -1,3 +1,9 @@
+export type TaskComment = {
+  id: string;
+  content: string;
+  created_at: string;
+};
+
 export type Task = {
   id: string;
   title: string;
@@ -8,7 +14,7 @@ export type Task = {
   notes: string;
   created_at: string;
   updated_at: string;
-  comments: string[];
+  comments: TaskComment[];
 };
 
 export type CreateTaskInput = {

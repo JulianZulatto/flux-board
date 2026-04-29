@@ -8,22 +8,12 @@ import {
   createTask as createTaskRequest,
   deleteTask as deleteTaskRequest,
   getTasks,
+  type Task,
   updateTask as updateTaskRequest
 } from "@/services/tasksApi";
 
-type Task = {
-  id: string
-  title: string
-  type: string
-  status: string
-  priority: string
-  area: string
-  notes: string
-  comments: string[]
-}
-
 type TaskPatch = Partial<Omit<Task, "id" | "comments">> & {
-  comments?: string[]
+  comments?: Task["comments"]
 }
 
 const statuses = ["Pendiente", "En progreso", "Bloqueado", "En revisión", "Hecho"];
@@ -171,7 +161,7 @@ export default function FluxERPControlBoard() {
       setTasks((prev) =>
         prev.map((task) =>
           task.id === selectedTask.id
-            ? { ...task, comments: [...task.comments, createdComment.content] }
+            ? { ...task, comments: [...task.comments, createdComment] }
             : task
         )
       );
@@ -329,9 +319,9 @@ export default function FluxERPControlBoard() {
                     <h3 className="font-semibold">Comentarios</h3>
                     <div className="space-y-2">
                       {selectedTask.comments.length === 0 && <p className="text-sm text-slate-400">Todavía no hay comentarios.</p>}
-                      {selectedTask.comments.map((item, index) => (
-                        <div key={index} className="rounded-xl bg-slate-950 p-3 text-sm text-slate-300">
-                          {item}
+                      {selectedTask.comments.map((item) => (
+                        <div key={item.id} className="rounded-xl bg-slate-950 p-3 text-sm text-slate-300">
+                          {item.content}
                         </div>
                       ))}
                     </div>
