@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   createTask as createTaskRequest,
+  deleteTask as deleteTaskRequest,
   getTasks,
   updateTask as updateTaskRequest
 } from "@/services/tasksApi";
@@ -135,9 +136,27 @@ export default function FluxERPControlBoard() {
     }
   }
 
-  function deleteTask(id: string) {
-    setTasks((prev) => prev.filter((task) => task.id !== id));
-    if (selectedTaskId === id) setSelectedTaskId(tasks[0]?.id);
+  async function deleteTask(id: string) {
+    try {
+      setError(null);
+      await deleteTaskRequest(id);
+
+      let nextSelectedTaskId = selectedTaskId;
+
+      setTasks((prev) => {
+        const nextTasks = prev.filter((task) => task.id !== id);
+        if (selectedTaskId === id) {
+          nextSelectedTaskId = nextTasks[0]?.id;
+        }
+        return nextTasks;
+      });
+
+      if (selectedTaskId === id) {
+        setSelectedTaskId(nextSelectedTaskId);
+      }
+    } catch (_error) {
+      setError("No se pudo eliminar la tarea en el backend.");
+    }
   }
 
   function addComment() {
