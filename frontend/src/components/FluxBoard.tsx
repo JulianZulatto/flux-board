@@ -4,6 +4,7 @@ import { Plus, Search, AlertTriangle, CheckCircle2, Clock, BookOpen, Users, Code
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
+  createComment as createCommentRequest,
   createTask as createTaskRequest,
   deleteTask as deleteTaskRequest,
   getTasks,
@@ -159,16 +160,25 @@ export default function FluxERPControlBoard() {
     }
   }
 
-  function addComment() {
+  async function addComment() {
     if (!selectedTask || !comment.trim()) return;
-    setTasks((prev) =>
-      prev.map((task) =>
-        task.id === selectedTask.id
-          ? { ...task, comments: [...task.comments, comment.trim()] }
-          : task
-      )
-    );
-    setComment("");
+
+    try {
+      setError(null);
+      const newComment = comment.trim();
+      const createdComment = await createCommentRequest(selectedTask.id, newComment);
+
+      setTasks((prev) =>
+        prev.map((task) =>
+          task.id === selectedTask.id
+            ? { ...task, comments: [...task.comments, createdComment.content] }
+            : task
+        )
+      );
+      setComment("");
+    } catch (_error) {
+      setError("No se pudo crear el comentario en el backend.");
+    }
   }
 
   return (
