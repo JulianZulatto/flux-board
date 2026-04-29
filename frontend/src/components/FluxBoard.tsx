@@ -3,7 +3,11 @@ import { motion } from "framer-motion";
 import { Plus, Search, AlertTriangle, CheckCircle2, Clock, BookOpen, Users, Code2, MessageSquare, Trash2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { createTask as createTaskRequest, getTasks } from "@/services/tasksApi";
+import {
+  createTask as createTaskRequest,
+  getTasks,
+  updateTask as updateTaskRequest
+} from "@/services/tasksApi";
 
 type Task = {
   id: string
@@ -121,8 +125,14 @@ export default function FluxERPControlBoard() {
     }
   }
 
-  function updateTask(id: string, patch: TaskPatch) {
-    setTasks((prev) => prev.map((task) => (task.id === id ? { ...task, ...patch } : task)));
+  async function updateTask(id: string, patch: TaskPatch) {
+    try {
+      setError(null);
+      const updatedTask = await updateTaskRequest(id, patch);
+      setTasks((prev) => prev.map((task) => (task.id === id ? updatedTask : task)));
+    } catch (_error) {
+      setError("No se pudo actualizar la tarea en el backend.");
+    }
   }
 
   function deleteTask(id: string) {
