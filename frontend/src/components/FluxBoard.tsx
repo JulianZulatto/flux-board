@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Plus, Search, AlertTriangle, CheckCircle2, Clock, BookOpen, Users, Code2, MessageSquare, Trash2 } from "lucide-react";
+import { Plus, Search, AlertTriangle, CheckCircle2, Clock, BookOpen, Users, Code2, MessageSquare, Trash2, X } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   createComment as createCommentRequest,
   createTask as createTaskRequest,
+  deleteComment as deleteCommentRequest,
   deleteTask as deleteTaskRequest,
   getTasks,
   type Task,
@@ -171,6 +172,25 @@ export default function FluxERPControlBoard() {
     }
   }
 
+  async function removeComment(commentId: string) {
+    if (!selectedTask) return;
+
+    try {
+      setError(null);
+      await deleteCommentRequest(commentId);
+
+      setTasks((prev) =>
+        prev.map((task) =>
+          task.id === selectedTask.id
+            ? { ...task, comments: task.comments.filter((item) => item.id !== commentId) }
+            : task
+        )
+      );
+    } catch (_error) {
+      setError("No se pudo eliminar el comentario en el backend.");
+    }
+  }
+
   return (
     <div className="min-h-screen bg-slate-950 p-4 text-slate-100 md:p-8">
       <div className="mx-auto max-w-7xl space-y-6">
@@ -320,8 +340,15 @@ export default function FluxERPControlBoard() {
                     <div className="space-y-2">
                       {selectedTask.comments.length === 0 && <p className="text-sm text-slate-400">Todavía no hay comentarios.</p>}
                       {selectedTask.comments.map((item) => (
-                        <div key={item.id} className="rounded-xl bg-slate-950 p-3 text-sm text-slate-300">
-                          {item.content}
+                        <div key={item.id} className="flex items-start justify-between gap-2 rounded-xl bg-slate-950 p-3 text-sm text-slate-300">
+                          <span>{item.content}</span>
+                          <button
+                            onClick={() => removeComment(item.id)}
+                            className="rounded-lg p-1 text-slate-500 hover:bg-slate-800 hover:text-red-300"
+                            aria-label="Eliminar comentario"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
                         </div>
                       ))}
                     </div>
