@@ -1,8 +1,9 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Plus, Search, AlertTriangle, CheckCircle2, Clock, BookOpen, Users, Code2, MessageSquare, Trash2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { getTasks } from "@/services/tasksApi";
 
 type Task = {
   id: string
@@ -18,39 +19,6 @@ type Task = {
 type TaskPatch = Partial<Omit<Task, "id" | "comments">> & {
   comments?: string[]
 }
-
-const initialTasks: Task[] = [
-  {
-    id: crypto.randomUUID(),
-    title: "PR feature/tickets: test bloqueado",
-    type: "Bloqueo técnico",
-    status: "Bloqueado",
-    priority: "Alta",
-    area: "Backend Java / Tests",
-    notes: "Excedió mi capacidad actual. Dejárselo documentado a Facu y retomar cuando lo revise.",
-    comments: ["No seguir peleando sin dirección. Esperar revisión y después estudiar la solución."],
-  },
-  {
-    id: crypto.randomUUID(),
-    title: "Leer flujo TicketController → Service → Repository",
-    type: "Aprendizaje aplicado",
-    status: "Pendiente",
-    priority: "Media",
-    area: "Backend Java / Spring Boot",
-    notes: "Objetivo: entender qué entra, qué sale y qué responsabilidad tiene cada capa.",
-    comments: [],
-  },
-  {
-    id: crypto.randomUUID(),
-    title: "Revisar estado de los 4 clientes activos",
-    type: "Cliente / Soporte",
-    status: "Pendiente",
-    priority: "Alta",
-    area: "Clientes",
-    notes: "Detectar si hay errores reales, consultas pendientes o necesidades urgentes.",
-    comments: [],
-  },
-];
 
 const statuses = ["Pendiente", "En progreso", "Bloqueado", "En revisión", "Hecho"];
 const types = ["Código", "Bug", "Bloqueo técnico", "Aprendizaje aplicado", "Cliente / Soporte", "Decisión con Facu"];
@@ -81,10 +49,12 @@ function iconFor(type: string) {
 }
 
 export default function FluxERPControlBoard() {
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [query, setQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("Todos");
-  const [selectedTaskId, setSelectedTaskId] = useState(initialTasks[0]?.id);
+  const [selectedTaskId, setSelectedTaskId] = useState<string | undefined>(undefined);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [newTask, setNewTask] = useState({
     title: "",
     type: "Código",
@@ -94,6 +64,24 @@ export default function FluxERPControlBoard() {
     notes: "",
   });
   const [comment, setComment] = useState("");
+
+  useEffect(() => {
+    async function loadTasks() {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await getTasks();
+        setTasks(data);
+        setSelectedTaskId(data[0]?.id);
+      } catch (_error) {
+        setError("No se pudieron cargar las tareas desde el backend.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadTasks();
+  }, []);
 
   const filteredTasks = useMemo(() => {
     return tasks.filter((task) => {
@@ -193,6 +181,11 @@ export default function FluxERPControlBoard() {
               </div>
 
               <div className="grid gap-3">
+                {loading && <p className="rounded-xl border border-slate-800 bg-slate-950 p-3 text-sm text-slate-300">Cargando tareas...</p>}
+                {error && <p className="rounded-xl border border-red-900 bg-red-950/40 p-3 text-sm text-red-200">{error}</p>}
+                {!loading && !error && filteredTasks.length === 0 && (
+                  <p className="rounded-xl border border-slate-800 bg-slate-950 p-3 text-sm text-slate-300">No hay tareas para mostrar.</p>
+                )}
                 {filteredTasks.map((task) => (
                   <motion.div
                     key={task.id}
