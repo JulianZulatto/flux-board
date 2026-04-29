@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Plus, Search, AlertTriangle, CheckCircle2, Clock, BookOpen, Users, Code2, MessageSquare, Trash2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { getTasks } from "@/services/tasksApi";
+import { createTask as createTaskRequest, getTasks } from "@/services/tasksApi";
 
 type Task = {
   id: string
@@ -55,6 +55,7 @@ export default function FluxERPControlBoard() {
   const [selectedTaskId, setSelectedTaskId] = useState<string | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [creatingTask, setCreatingTask] = useState(false);
   const [newTask, setNewTask] = useState({
     title: "",
     type: "Código",
@@ -103,16 +104,21 @@ export default function FluxERPControlBoard() {
     };
   }, [tasks]);
 
-  function addTask() {
+  async function addTask() {
     if (!newTask.title.trim()) return;
-    const task = {
-      ...newTask,
-      id: crypto.randomUUID(),
-      comments: [],
-    };
-    setTasks((prev) => [task, ...prev]);
-    setSelectedTaskId(task.id);
-    setNewTask({ title: "", type: "Código", status: "Pendiente", priority: "Media", area: "FluxERP", notes: "" });
+
+    try {
+      setCreatingTask(true);
+      setError(null);
+      const createdTask = await createTaskRequest(newTask);
+      setTasks((prev) => [createdTask, ...prev]);
+      setSelectedTaskId(createdTask.id);
+      setNewTask({ title: "", type: "Código", status: "Pendiente", priority: "Media", area: "FluxERP", notes: "" });
+    } catch (_error) {
+      setError("No se pudo crear la tarea en el backend.");
+    } finally {
+      setCreatingTask(false);
+    }
   }
 
   function updateTask(id: string, patch: TaskPatch) {
@@ -252,7 +258,7 @@ export default function FluxERPControlBoard() {
                   value={newTask.notes}
                   onChange={(e) => setNewTask({ ...newTask, notes: e.target.value })}
                 />
-                <Button onClick={addTask} className="w-full rounded-xl">
+                <Button onClick={addTask} className="w-full rounded-xl" disabled={creatingTask}>
                   <Plus className="mr-2 h-4 w-4" /> Agregar al tablero
                 </Button>
               </CardContent>
