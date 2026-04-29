@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Plus, Search, AlertTriangle, CheckCircle2, Clock, BookOpen, Users, Code2, MessageSquare, Trash2, X } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { formatDateTime } from "@/lib/dateTime";
 import {
   createComment as createCommentRequest,
   createTask as createTaskRequest,
@@ -256,6 +257,8 @@ export default function FluxERPControlBoard() {
                         </div>
                         <h3 className="font-semibold">{task.title}</h3>
                         <p className="text-sm text-slate-400">{task.area}</p>
+                        <p className="text-xs text-slate-500">Creado: {formatDateTime(task.created_at)}</p>
+                        <p className="text-xs text-slate-500">Actualizado: {formatDateTime(task.updated_at)}</p>
                       </div>
                       <button
                         onClick={(e) => {
@@ -319,6 +322,8 @@ export default function FluxERPControlBoard() {
                   <div className="space-y-2">
                     <p className="text-xs uppercase tracking-wide text-slate-400">Detalle seleccionado</p>
                     <h2 className="text-xl font-semibold">{selectedTask.title}</h2>
+                    <p className="text-xs text-slate-400">Fecha de creacion: {formatDateTime(selectedTask.created_at)}</p>
+                    <p className="text-xs text-slate-400">Ultima actualizacion: {formatDateTime(selectedTask.updated_at)}</p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
@@ -341,7 +346,10 @@ export default function FluxERPControlBoard() {
                       {selectedTask.comments.length === 0 && <p className="text-sm text-slate-400">Todavía no hay comentarios.</p>}
                       {selectedTask.comments.map((item) => (
                         <div key={item.id} className="flex items-start justify-between gap-2 rounded-xl bg-slate-950 p-3 text-sm text-slate-300">
-                          <span>{item.content}</span>
+                          <div>
+                            <p>{item.content}</p>
+                            <p className="mt-1 text-xs text-slate-500">{formatDateTime(item.created_at)}</p>
+                          </div>
                           <button
                             onClick={() => removeComment(item.id)}
                             className="rounded-lg p-1 text-slate-500 hover:bg-slate-800 hover:text-red-300"
