@@ -1,6 +1,7 @@
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
+import clientsRouter from "./routes/clients.routes.js";
 import tasksRouter from "./routes/tasks.routes.js";
 
 dotenv.config();
@@ -19,6 +20,7 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/api", tasksRouter);
+app.use("/api", clientsRouter);
 
 app.listen(port, () => {
   console.log(`Backend listening on http://localhost:${port}`);

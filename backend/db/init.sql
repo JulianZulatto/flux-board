@@ -18,3 +18,17 @@ CREATE TABLE IF NOT EXISTS comments (
   content TEXT NOT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS clients (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  business_name TEXT NOT NULL,
+  contact_name TEXT NOT NULL,
+  phone TEXT NOT NULL,
+  status TEXT NOT NULL CHECK (status IN ('LEAD', 'EN_PRUEBA', 'ACTIVO', 'MOROSO', 'BAJA')),
+  start_date DATE NOT NULL,
+  end_date DATE,
+  plan TEXT,
+  internal_notes TEXT NOT NULL DEFAULT '',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
